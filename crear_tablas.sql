@@ -46,6 +46,17 @@ CREATE TABLE monthly_budgets (
     UNIQUE KEY uniq_budget (user_id, category_id, budget_month) -- Evita duplicados
 ) ENGINE=InnoDB;
 
+-- tabla auditoria - log
+CREATE TABLE transactions_log (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    transaction_id INT,
+    user_id INT,
+    action_type ENUM('INSERT','UPDATE','DELETE'),
+    old_amount DECIMAL(10,2),
+    new_amount DECIMAL(10,2),
+    action_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 
 
 

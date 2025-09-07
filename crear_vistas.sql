@@ -1,3 +1,4 @@
+DELIMITER //
 -- Muestra ingresos, gastos y saldo del mes.
 CREATE OR REPLACE VIEW view_monthly_balance AS
 SELECT
@@ -13,7 +14,9 @@ FROM transactions t
 JOIN categories c ON t.category_id = c.id
 JOIN users u ON t.user_id = u.id
 GROUP BY u.id, u.name, YEAR(t.transaction_date), MONTH(t.transaction_date);
-
+//
+DELIMITER ;
+DELIMITER //
 -- ver en qué se gasta más.
 CREATE OR REPLACE VIEW view_expenses_by_category AS
 SELECT 
@@ -34,8 +37,9 @@ GROUP BY
     YEAR(t.transaction_date),
     MONTH(t.transaction_date);
 
-
-
+//
+DELIMITER ;
+DELIMITER //
 -- Muestra el presupuesto asignado y cuánto se ha gastado en esa categoría.
 CREATE VIEW view_budget_vs_spent AS
 SELECT 
@@ -54,7 +58,9 @@ LEFT JOIN transactions t
     AND t.category_id = mb.category_id
     AND DATE_FORMAT(t.transaction_date, '%Y-%m') = DATE_FORMAT(mb.budget_month, '%Y-%m')
 GROUP BY mb.id, u.name, c.name, mb.budget_month, mb.budget_amount;
-
+//
+DELIMITER ;
+DELIMITER //
 -- Para mostrar un resumen rápido tipo “dashboard”.
 CREATE OR REPLACE VIEW view_latest_transactions AS
 SELECT 
@@ -68,7 +74,23 @@ SELECT
 FROM transactions t
 JOIN categories c ON t.category_id = c.id
 JOIN users u ON t.user_id = u.id;
-
-
-
+//
+DELIMITER ;
+DELIMITER //
+-- resumen anual por usuario
+CREATE OR REPLACE VIEW view_annual_summary AS
+SELECT
+    u.id AS user_id,
+    u.name AS user_name,
+    YEAR(t.transaction_date) AS year,
+    SUM(CASE WHEN c.type = 'income' THEN t.amount ELSE 0 END) AS total_income,
+    SUM(CASE WHEN c.type = 'expense' THEN t.amount ELSE 0 END) AS total_expense,
+    SUM(CASE WHEN c.type = 'income' THEN t.amount ELSE 0 END)
+      - SUM(CASE WHEN c.type = 'expense' THEN t.amount ELSE 0 END) AS balance
+FROM transactions t
+JOIN categories c ON t.category_id = c.id
+JOIN users u ON t.user_id = u.id
+GROUP BY u.id, u.name, YEAR(t.transaction_date);
+//
+DELIMITER ;
 

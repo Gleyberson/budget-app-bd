@@ -1,3 +1,4 @@
+DELIMITER //
 -- Gastos por categoría de un usuario, pero solo mostrar las que superan $100.
 SELECT 
     c.name AS category_name,
@@ -7,7 +8,9 @@ INNER JOIN categories c ON t.category_id = c.id
 WHERE t.user_id = 1 AND c.type = 'expense'
 GROUP BY c.name
 HAVING total_spent > 100;
-
+//
+DELIMITER ;
+DELIMITER //
 -- Obtener todas las transacciones con el nombre de la categoría y del usuario.
 SELECT 
     u.name AS user_name,
@@ -18,7 +21,9 @@ FROM transactions t
 INNER JOIN categories c ON t.category_id = c.id
 INNER JOIN users u ON t.user_id = u.id
 ORDER BY t.transaction_date DESC;
-
+//
+DELIMITER ;
+DELIMITER //
 -- Listar todas las categorías de un usuario, aunque no tengan transacciones este mes.
 SELECT 
     c.name AS category_name,
@@ -30,7 +35,9 @@ LEFT JOIN transactions t
     AND DATE_FORMAT(t.transaction_date, '%Y-%m') = '2025-08'
 WHERE c.user_id = 1
 GROUP BY c.name;
-
+//
+DELIMITER ;
+DELIMITER //
 -- Mostrar las transacciones que superan el gasto promedio del usuario en agosto 2025.
 SELECT 
     t.description,
@@ -45,7 +52,9 @@ WHERE t.user_id = 1
       WHERE user_id = 1
         AND DATE_FORMAT(transaction_date, '%Y-%m') = '2025-08'
   );
-
+//
+DELIMITER ;
+DELIMITER //
 -- Ver el gasto total de cada categoría y su porcentaje sobre el total mensual.
 SELECT 
     category_name,
@@ -63,5 +72,5 @@ FROM (
       AND DATE_FORMAT(t.transaction_date, '%Y-%m') = '2025-08'
     GROUP BY c.name
 ) AS category_totals;
-
+//
 
