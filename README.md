@@ -9,14 +9,20 @@
   - [Tabla `categories`](#2-categories--categorías)
   - [Tabla `transactions`](#3-transactions--transacciones)
   - [Tabla `monthly_budgets`](#4-monthly-budgets--presupuestos-mensuales)
-  - [Tabla `transactions_log`](#5-transactions_log--bitácora-de-transacciones)
 - [Abreviaturas de Nombres de Campos](#abreviaturas-de-nombres-de-campos)
 - [Tipos de Claves](#tipos-de-claves)
 - [Vistas](#vistas)
+  - [Vista `view_monthly_balance`](#vista-view_monthly_balance)
+  - [Vista `view_expenses_by_category`](#vista-view_expenses_by_category)
+  - [Vista `view_budget_vs_spent`](#vista-view_budget_vs_spent)
+  - [Vista `view_latest_transactions`](#vista-view_latest_transactions)
+  - [Vista `view_annual_summary`](#vista-view_annual_summary)
 - [Funciones](#funciones)
 - [Stored Procedures](#stored-procedures)
 - [Triggers](#triggers)
+- [Gestión de Transacciones (TCL)](#gestión-de-transacciones-tcl)
 - [Diagrama ER](#diagrama-er)
+- [Contacto](#contacto)
 
 ---
 
@@ -94,18 +100,20 @@ Presupuesto asignado a cada usuario para una categoría específica en un mes da
 
 ---
 
-### 5. `transactions_log` — Bitácora de Transacciones
-Tabla de auditoría que registra todas las operaciones realizadas sobre la tabla `transactions` (insert, update, delete).
+### 5. `transactions_log` — Auditoría de transacciones
+Tabla para registrar operaciones sobre la tabla `transactions` (INSERT / UPDATE / DELETE) y conservar historial.
 
-| Campo         | Nombre Completo         | Tipo de Dato      | Descripción                                         | Clave         |
-|---------------|------------------------|-------------------|-----------------------------------------------------|---------------|
-| id            | Identificador          | INT AUTO_INCREMENT| Clave primaria auto incremental                     | PRIMARY KEY   |
-| transaction_id| ID Transacción         | INT               | Identificador de la transacción afectada            |               |
-| user_id       | ID Usuario             | INT               | Identificador del usuario que realizó la acción      |               |
-| action_type   | Tipo de Acción         | ENUM              | Tipo de acción: 'INSERT', 'UPDATE', 'DELETE'        |               |
-| old_amount    | Monto Anterior         | DECIMAL(10,2)     | Valor anterior del monto (si aplica)                |               |
-| new_amount    | Monto Nuevo            | DECIMAL(10,2)     | Valor nuevo del monto (si aplica)                   |               |
-| action_date   | Fecha de Acción        | TIMESTAMP         | Fecha y hora en que se realizó la acción            |               |
+| Campo           | Nombre Completo    | Tipo de Dato               | Descripción                                                       | Clave        |
+|-----------------|--------------------|----------------------------|-------------------------------------------------------------------|--------------|
+| id              | Identificador      | INT UNSIGNED AUTO_INCREMENT| Clave primaria auto incremental                                   | PRIMARY KEY  |
+| transaction_id  | ID Transacción     | INT UNSIGNED               | ID de la transacción afectada (transactions.id)                   |              |
+| user_id         | ID Usuario         | INT UNSIGNED               | Usuario relacionado con la transacción                            |              |
+| action_type     | Tipo de Acción     | ENUM('INSERT','UPDATE','DELETE') | Tipo de operación registrada                                 |              |
+| old_amount      | Monto Anterior     | DECIMAL(10,2)              | Monto previo (aplica para UPDATE y DELETE)                       |              |
+| new_amount      | Monto Nuevo        | DECIMAL(10,2)              | Monto nuevo (aplica para INSERT y UPDATE)                        |              |
+| action_date     | Fecha Acción       | TIMESTAMP                  | Fecha y hora del registro                                         |              |
+
+> **Nota:** Por lo general no se define una clave foránea estricta hacia `transactions.id` para permitir conservar entradas de auditoría incluso si la transacción fue eliminada. Si prefieres integridad referencial, puedes añadir `FOREIGN KEY (transaction_id) REFERENCES transactions(id)`.
 
 ---
 
@@ -192,6 +200,12 @@ Se ejecuta después de un `DELETE` en `transactions`. Inserta en `transactions_l
 
 ---
 
+## Gestión de Transacciones (TCL)
+
+Los ejemplos de control de transacciones (TCL) se encuentran en el archivo [`tcl.sql`](tcl.sql). Allí podrás ver casos prácticos con `START TRANSACTION`, `COMMIT`, `ROLLBACK`, `SAVEPOINT`, `ROLLBACK TO` y `RELEASE SAVEPOINT` aplicados a esta base de datos.
+
+---
+
 ## Diagrama ER
 
 ```mermaid
@@ -231,20 +245,15 @@ erDiagram
         datetime created_at
     }
 
-    TRANSACTIONS_LOG {
-        int id
-        int transaction_id
-        int user_id
-        string action_type
-        float old_amount
-        float new_amount
-        datetime action_date
-    }
-
     USERS ||--o{ CATEGORIES : define
     USERS ||--o{ TRANSACTIONS : realiza
     USERS ||--o{ MONTHLY_BUDGETS : planifica
     CATEGORIES ||--o{ TRANSACTIONS : clasifica
     CATEGORIES ||--o{ MONTHLY_BUDGETS : asigna
-    TRANSACTIONS ||--o{ TRANSACTIONS_LOG : audita
 ```
+
+---
+
+## Contacto
+Para dudas o sugerencias, contacta con el desarrollador.
+
